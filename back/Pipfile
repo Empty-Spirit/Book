@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+requests = "*"
+lxml = "*"
+rsa = "*"
+flask = "*"
+pandas = "*"
+sqlalchemy = "==1.4.47"
+flask-apscheduler = "*"
+pymysql = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.8"
