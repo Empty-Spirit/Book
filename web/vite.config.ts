@@ -1,10 +1,15 @@
-import { ConfigEnv, UserConfigExport } from 'vite'
+import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-const resolve = require("path")
+// 自动引入vue相关函数
+import AutoImport from 'unplugin-auto-import/vite'
+// Vant 自动引入样式
+import Components from 'unplugin-vue-components/vite';
+import { VantResolver } from 'unplugin-vue-components/resolvers';
+
+const path = require("path")
 
 // https://vitejs.dev/config/
-export default ({ command }: ConfigEnv): UserConfigExport => {
-  return {
+export default defineConfig({
     server: {
       // 是否开启 https
       https: false,
@@ -16,16 +21,30 @@ export default ({ command }: ConfigEnv): UserConfigExport => {
        */
       port: 8080,
       // 浏览器自动打开
-      open: true,
+      open: false,
       // 本地跨域代理
       proxy: {
         "/test": {
-          target: 'http://stzbxinghe.com/stzbxinghe/php/',
+          target: 'http://10.48.134.128:9999',
           changeOrigin: true,
           rewrite: path => path.replace(/^\/test/, '')
         }
       },
     },
-    plugins: [vue()]
-  }
-}
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, 'src'),
+        '*': path.resolve('')
+      }
+    },
+    plugins: [
+      vue(),
+      AutoImport({
+        imports:['vue', 'vue-router', 'vuex'],
+      }),
+      Components({
+        resolvers: [VantResolver()],
+      }),
+    ],
+    base:'./'
+  })

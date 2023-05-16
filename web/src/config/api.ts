@@ -1,9 +1,6 @@
-import { post, get } from "./request";
+import axiosInstance, { AxiosResponseProps } from './request';
+import { apiUrl } from './url';
 
-let api = {
-  user: {
-    login: post("/user/userList.php")
-  }
-}
-
-export default api
+export const getTest = () => {
+	return axiosInstance.get(apiUrl.TEST_PROXY);
+};
