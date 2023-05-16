@@ -1,77 +1,87 @@
-import axios from "axios"
-
-const baseUrlList = {
-  // 本地开发环境
-
-  dev: "test",
-  // 测试环境
-  test: "",
-  // 生产环境
-  prod: ""
+/** 
+ *  @author TalkTao
+ * @description  接口封装
+*/
+import { vuexStore } from "@/store/index";
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, Method } from "axios";
+export interface AxiosResponseProps {
+    code?: number;
+    status?: number;
+    data?: any;
+    datas?: any;
+    msg?: string | null;
 }
-
-const baseUrl = process.env.NODE_ENV === "development" ? baseUrlList["dev"] : baseUrlList["test"]
-
-// 请求拦截 
-const instance = axios.create({
-  baseURL: baseUrl,
-  timeout: 6000,
-})
-
-instance.interceptors.request.use(
-  config => {
-    return config
-  },
-  err => {
-    return Promise.reject(err)
-  }
-)
-
-// 响应拦截
-// 根据不同状态码进行处理
-instance.interceptors.response.use(
-  function (res) {
-    return res.data
-  },
-
-  (err) => {
-    let { response } = err
-    if (response) {
-      // 服务器返回结果
-      switch (response.status) {
-        case 401: //需要验证的用户 ，一般是未登录  之后跳转登录页面
-          break;
-        case 403://一般是token过期
-          break;
-        case 404: //一般是未找到
-          break;
-      }
-    } else {
-      if (!window.navigator.onLine) {
-        // 断网处理 ，可以跳转断网页面
-        return
-      }
+class HttpRequest {
+    private readonly baseURL: string;
+    private readonly withCredentials: boolean;
+    private readonly timeout: number;
+    constructor() {
+        //获取当前环境的api地址
+        this.baseURL = import.meta.env.VITE_BASE_URL as string;
+        this.withCredentials = true;
+        this.timeout = 1000 * 60;
     }
-    return Promise.reject(err)
-  }
-)
+    //初始化get请求
+    getInitConfig(): AxiosRequestConfig {
+        return {
+            baseURL: this.baseURL,
+            withCredentials: this.withCredentials,
+            timeout: this.timeout,
+        };
+    }
+    interceptors(instance: AxiosInstance) {
 
-export function get(url: any, params?: any) {
-  return (params: any) => {
-    return instance.get(url, {
-      params
-    })
-  }
-}
+        // 定义存放请求接口数组
+        let requestList: any = [];
+        const setLoadingToFalse = (response: any) => {
+            requestList
+                .filter((item: any) => item.url == response.config.url && item.method == response.config.method)
+                .forEach((item: any) => (item.isLoading = false));
 
-export function post(url: string) {
-  return (data: any) => {
-    return instance.post(url, data)
-  }
-}
+            //所有请求都加载完才让加载提示消失
+            if (requestList.every((item: any) => !item.isLoading)) {
+                setTimeout(() => {
+                    vuexStore.commit("changeIsLoading", false)
+                }, 1000)
+            };
+        };
 
-export function put(url: any, data?: any) {
-  return (data: any) => {
-    return instance.put(url, data)
-  }
+        instance.interceptors.request.use(
+            (config: any) => {
+                // 不用判断请求loading的路由
+                let ignoreLoadingUrls = ["/login"];
+
+                if (!ignoreLoadingUrls.includes(config.url)) {
+
+                    if (requestList.length < 10) {
+                        requestList.unshift({ ...config, isLoading: true });
+                    } else {
+                        requestList = [...requestList.slice(0, 9), { ...config, isLoading: true }];
+                    }
+                    vuexStore.commit("changeIsLoading", true);
+                }
+                return config;
+            },
+            error => Promise.reject(error + '请求错误')
+        );
+
+        instance.interceptors.response.use(
+            response => {
+                setLoadingToFalse(response);
+                return response.data;
+            },
+            error => {
+                if (error.response.status == 301) { }
+                setLoadingToFalse(error);
+                return Promise.reject(error.response?.data);
+            }
+        );
+    }
+    request(): AxiosInstance {
+        const instance = axios.create(this.getInitConfig());
+        this.interceptors(instance);
+        return instance;
+    }
 }
+const http = new HttpRequest();
+export default http.request();
