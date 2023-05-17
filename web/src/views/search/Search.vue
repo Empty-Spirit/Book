@@ -43,6 +43,7 @@ const book_list = ref<any>([]);
 const is_search = ref<any>(false);
 
 const onSearch = async (val: string) => {
+  if(!val) return;
   const form = {
     name: val,
     page: 1,
@@ -69,6 +70,10 @@ const goInfo = (item:any) => {
   console.log(item);
   router.push({
     path: '/chapter',
+    query: {
+      url: item.url,
+      order: item.order,
+    }
   })
 };
 
