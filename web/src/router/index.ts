@@ -1,4 +1,5 @@
 import { createRouter, RouteRecordRaw, createWebHistory } from "vue-router";
+import { vuexStore } from "@/store";
 
 // import Login from '../views/login/Index.vue'
 // 通过Vite的import.meta.glob()方法实现自动化导入路由
@@ -39,6 +40,7 @@ const index = createRouter({
 
 // 路由拦截
 index.beforeEach((to, from, next) => {
+  vuexStore.commit('isLoading', false);
   // store.commit('changeActiveIndex', iconMap[to.path]);
   // store.commit('changeRule', to.path);
   // store.commit('delTip', iconMap[to.path])

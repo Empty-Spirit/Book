@@ -1,11 +1,12 @@
 from flask import Flask
-from interface import collect
+from interface import collect, chapter
 
 # import read
 
 app = Flask(__name__)
 
 collect.collect(app)
+chapter.chapter(app)
 
 @app.route('/index')
 def index():

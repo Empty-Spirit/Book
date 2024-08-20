@@ -14,7 +14,7 @@
           <div class="author">{{ info.lastChapter }}</div>
         </div>
       </div>
-      <template #right>
+      <template #right v-if="right">
         <van-button square text="详情" type="primary" class="delete-button" />
         <van-button square text="删除" type="danger" class="delete-button" />
       </template>
@@ -23,9 +23,15 @@
 </template>
 
 <script setup lang="ts">
-const { info } = defineProps<{
-  info: any;
-}>();
+const { info, right } = withDefaults(
+  defineProps<{
+    info: any;
+    right?: boolean;
+  }>(),
+  {
+    right: true,
+  }
+)
 
 const goInfo = (item: Number) => {
   console.log(item);
@@ -41,9 +47,11 @@ const goInfo = (item: Number) => {
 .delete-button {
   height: 100%;
 }
+
 .main {
   padding: 10px 5px;
   display: flex;
+
   .left {
     display: inline-block;
     width: 88px;
@@ -62,26 +70,29 @@ const goInfo = (item: Number) => {
     margin-left: 10px;
     overflow: hidden;
     padding-right: 20px;
-    > div {
+
+    >div {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
       margin: 5px 0px;
     }
-    .title{
+
+    .title {
       font-weight: 400;
       font-size: 18px;
       margin-bottom: 10px;
     }
-    .author{
+
+    .author {
       color: #666;
       font-size: 14px;
     }
-    .last-chapter{
+
+    .last-chapter {
       color: #666;
       font-size: 14px;
       bottom: 2px;
     }
   }
-}
-</style>
+}</style>

@@ -8,9 +8,9 @@ import json
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
-def check_only(fields, value):
+def check_only(outside, fields, value):
   try:
-    sql = f"SELECT * FROM collect WHERE {fields} = '{value}'"
+    sql = f"SELECT * FROM { outside } WHERE { fields } = '{ value }'"
     df = pd.read_sql_query(sql, engine)
     res = df.to_json(orient="records", force_ascii=False)
     list = json.loads(res)
@@ -18,7 +18,7 @@ def check_only(fields, value):
       return True
     else:
       return False
-  except:
+  except Exception as e:
     return False
 
 def add(item):
@@ -27,7 +27,8 @@ def add(item):
     session.commit()
     session.close()
     return result.success('success')
-  except:
+  except Exception as e:
+    session.close()
     return result.error('failed to add item')
 
 def update(model, filter, sql):
@@ -48,11 +49,18 @@ def delete(model, filter):
   else:
     return result.error('failed to delete item')
 
+def get_item(sql):
+  try:
+    df = pd.read_sql_query(sql, engine)
+    res = df.to_json(orient="records", force_ascii=False)
+    return json.loads(res)[0]
+  except:
+    return False
 def search(sql):
   try:
     df = pd.read_sql_query(sql, engine)
     res = df.to_json(orient="records", force_ascii=False)
     list = json.loads(res)
     return result.success(list)
-  except:
+  except Exception as e:
     return result.error('failed to request')
